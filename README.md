@@ -1,6 +1,7 @@
 # M00961778_Coursework2
 
-Link to FrontEnd Repo https://github.com/tervertatyough/M00961778_Coursework2
+Link to FrontEnd Repo https://github.com/tervertatyough/M00961778_Coursework_FrontEnd
+
 Link to BackEnd Repo 
 
 o [Vue.js App] the link to your GitHub Pages from where the app
