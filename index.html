@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <title>M00961778 CW2</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="mx-12">
+        <div
+          class="w-full bg-orange-400 h-16 text-center grid items-center justify-items-center"
+        >
+          <h1 v-text="sitename" class="font-semibold text-2xl text-white"></h1>
+        </div>
+        <div class="m-4">
+          <button
+            v-if="enableCheckout"
+            v-on:click="toggleCartPage"
+            class="relative bg-orange-400 text-white px-6 py-4 rounded-md flex items-center justify-center"
+          >
+            <span
+              class="bg-red-500 text-white text-xs font-semibold rounded-full px-2 py-1 absolute -top-2 -right-2"
+              >{{ cartItemCount }}</span
+            >
+            Checkout
+          </button>
+          <button
+            disabled="disabled"
+            v-else="enableCheckout"
+            class="bg-orange-400 cursor-not-allowed opacity-50 text-white px-6 py-4 rounded-md flex items-center justify-center"
+          >
+            Checkout
+          </button>
+        </div>
+      </header>
+      <main>
+        <div v-if="showCartPage" class="flex mx-12">
+          <div class="w-1/4 h-max m-4 p-4 bg-orange-400 rounded-lg mb-4">
+            <div>
+              <input
+                type="search"
+                v-model="searchQuery"
+                name="search"
+                id="search"
+                placeholder="Search Lesson..."
+                class="bg-white rounded-md border border-gray-300 px-3 py-2 w-full"
+              />
+            </div>
+            <div class="flex flex-col mt-4">
+              <p>
+                <input
+                  type="radio"
+                  v-model="sortBy"
+                  id="lesson"
+                  value="programme"
+                  class="mr-2 cursor-pointer text-orange-400"
+                />
+                <label for="lesson" class="text-white cursor-pointer">
+                  Lesson
+                </label>
+              </p>
+              <p>
+                <input
+                  type="radio"
+                  v-model="sortBy"
+                  id="location"
+                  value="location"
+                  class="mr-2 cursor-pointer text-orange-400"
+                />
+                <label for="location" class="text-white cursor-pointer">
+                  Location
+                </label>
+              </p>
+              <p>
+                <input
+                  type="radio"
+                  v-model="sortBy"
+                  id="price"
+                  value="price"
+                  class="mr-2 cursor-pointer text-orange-400"
+                />
+                <label for="price" class="text-white cursor-pointer">
+                  Price
+                </label>
+              </p>
+              <p>
+                <input
+                  type="radio"
+                  v-model="sortBy"
+                  id="spaces"
+                  value="spacesAvailable"
+                  class="mr-2 cursor-pointer text-orange-400"
+                />
+                <label for="spaces" class="text-white cursor-pointer">
+                  Spaces Available
+                </label>
+              </p>
+            </div>
+            <div class="my-4">
+              <p>
+                <input
+                  type="radio"
+                  v-model="sortOrder"
+                  id="ascending"
+                  value="asc"
+                  class="mr-2 cursor-pointer text-orange-400"
+                />
+                <label for="ascending" class="text-white cursor-pointer">
+                  Ascending
+                </label>
+              </p>
+
+              <p>
+                <input
+                  type="radio"
+                  v-model="sortOrder"
+                  id="decending"
+                  value="desc"
+                  class="mr-2 cursor-pointer text-orange-400"
+                />
+                <label for="decending" class="text-white cursor-pointer">
+                  Descending
+                </label>
+              </p>
+            </div>
+          </div>
+          <div class="flex flex-wrap w-full">
+            <div
+              v-for="lesson in lessons"
+              class="bg-orange-400 w-70 p-4 m-2 flex flex-col items-center"
+            >
+              <figure>
+                <img class="h-48" v-bind:src="lesson.image" alt="" />
+              </figure>
+              <div class="items-start my-4">
+                <h3>
+                  Lesson:
+                  <span class="font-semibold text-base"
+                    >{{lesson.programme}}</span
+                  >
+                </h3>
+                <p>
+                  Location:
+                  <span class="font-semibold text-base">
+                    {{lesson.location}}</span
+                  >
+                </p>
+                <p>
+                  Price:
+                  <span class="font-semibold text-base">{{lesson.price}}</span>
+                </p>
+                <p>
+                  Spaces Available:
+                  <span class="font-semibold text-base"
+                    >{{lesson.spaces - cartCount(lesson._id)}}
+                  </span>
+                </p>
+              </div>
+              <p
+                v-if="lesson.spaces === cartCount(lesson.id)"
+                class="font-semibold text-red-700"
+              >
+                All Out!
+              </p>
+              <p
+                v-else-if="lesson.spaces - cartCount(lesson.id) < 3"
+                class="font-semibold text-red-700"
+              >
+                Only {{lesson.spaces - cartCount(lesson._id)}} left!!!
+              </p>
+              <p class="font-semibold text-white" v-else>Buy Now!</p>
+              <button
+                v-on:click="addToCart(lesson)"
+                v-if="canAddToCart(lesson)"
+                class="bg-white text-orange-400 hover:bg-gray-300 font-bold py-2 px-4 my-2 w-full rounded"
+              >
+                Add To Cart
+              </button>
+              <button
+                disabled="disabled"
+                v-else
+                class="bg-gray-300 cursor-not-allowed opacity-50 py-2 px-4 my-2 w-full rounded"
+              >
+                Add To Cart
+              </button>
+            </div>
+          </div>
+        </div>
+        <div v-else="showCartPage" class="flex mx-12">
+          <div class="flex flex-wrap w-full">
+            <div
+              v-for="(lessonId, index) in cart"
+              :key="index"
+              class="bg-orange-400 w-70 p-4 m-2 flex flex-col items-center"
+            >
+              <div v-if="getLessonDetails(lessonId)">
+                <figure>
+                  <img
+                    class="h-48"
+                    v-bind:src="getLessonDetails(lessonId).image"
+                    alt=""
+                  />
+                </figure>
+                <div class="items-start my-4">
+                  <h3>
+                    Lesson:
+                    <span class="font-semibold text-base"
+                      >{{ getLessonDetails(lessonId).programme }}</span
+                    >
+                  </h3>
+                  <p>
+                    Location:
+                    <span class="font-semibold text-base"
+                      >{{ getLessonDetails(lessonId).location }}</span
+                    >
+                  </p>
+                  <p>
+                    Price:
+                    <span class="font-semibold text-base"
+                      >{{ getLessonDetails(lessonId).price }}</span
+                    >
+                  </p>
+                </div>
+                <button
+                  v-on:click="removeFromCart(index)"
+                  class="bg-white text-orange-400 hover:bg-gray-300 font-bold py-2 px-4 my-2 w-full rounded"
+                >
+                  Remove
+                </button>
+              </div>
+              <div v-else>
+                <p>Lesson details not found for ID: {{ lessonId }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="w-2/5 p-4">
+            <h3 class="font-semibold text-lg">Checkout Details</h3>
+            <p class="relative my-4">
+              <input
+                type="text"
+                v-model="order.name"
+                id="name"
+                required
+                class="border-2 border-gray-300 focus:border-orange-400 outline-none rounded-md px-3 py-2 w-full"
+              />
+              <label
+                for="name"
+                class="absolute top-0 left-3 -mt-2 bg-white text-gray-500 px-1"
+                >Full Name
+              </label>
+            </p>
+            <p class="relative my-4">
+              <input
+                type="number"
+                v-model="order.number"
+                id="number"
+                required
+                class="border-2 border-gray-300 focus:border-orange-400 outline-none rounded-md px-3 py-2 w-full"
+              />
+              <label
+                for="number"
+                class="absolute top-0 left-3 -mt-2 bg-white text-gray-500 px-1"
+              >
+                Phone Number
+              </label>
+            </p>
+            <button
+              :disabled="!canCheckOut"
+              v-on:click="submitOrder"
+              :class="{ 'bg-orange-400 hover:bg-orange-500 text-white py-4 px-6 my-4 rounded': canCheckOut,
+              'bg-gray-300 cursor-not-allowed opacity-50 py-4 px-6 my-4 rounded': !canCheckOut }"
+            >
+              Place Order
+            </button>
+          </div>
+        </div>
+        <!-- <div v-else="showCartPage" class="flex mx-12">
+          <div class="flex flex-wrap w-full">
+            <div
+              v-for="(item, index) in cart"
+              :key="index"
+              class="bg-orange-400 w-70 p-4 m-2 flex flex-col items-center"
+            >
+              <div v-if="getLessonDetails(item.id)">
+                <figure>
+                  <img
+                    class="h-48"
+                    :src="getLessonDetails(item.id).image"
+                    alt=""
+                  />
+                </figure>
+                <div class="items-start my-4">
+                  <h3>
+                    Lesson:
+                    <span class="font-semibold text-base"
+                      >{{ getLessonDetails(item.id).programme }}</span
+                    >
+                  </h3>
+                  <p>
+                    Location:
+                    <span class="font-semibold text-base"
+                      >{{ getLessonDetails(item.id).location }}</span
+                    >
+                  </p>
+                  <p>
+                    Price:
+                    <span class="font-semibold text-base"
+                      >{{ getLessonDetails(item.id).price }}</span
+                    >
+                  </p>
+                  <p>
+                    Quantity:
+                    <span class="font-semibold text-base"
+                      >{{ item.quantity }}</span
+                    >
+                  </p>
+                </div>
+                <button
+                  v-on:click="removeFromCart(item.id)"
+                  class="bg-white text-orange-400 hover:bg-gray-300 font-bold py-2 px-4 my-2 w-full rounded"
+                >
+                  Remove
+                </button>
+              </div>
+              <div v-else>
+                <p>Lesson details not found for ID: {{ item.id }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="w-2/5 p-4">
+            <h3 class="font-semibold text-lg">Checkout Details</h3>
+            <p class="relative my-4">
+              <input
+                type="text"
+                v-model="order.name"
+                id="name"
+                required
+                class="border-2 border-gray-300 focus:border-orange-400 outline-none rounded-md px-3 py-2 w-full"
+              />
+              <label
+                for="name"
+                class="absolute top-0 left-3 -mt-2 bg-white text-gray-500 px-1"
+                >Full Name
+              </label>
+            </p>
+            <p class="relative my-4">
+              <input
+                type="number"
+                v-model="order.number"
+                id="number"
+                required
+                class="border-2 border-gray-300 focus:border-orange-400 outline-none rounded-md px-3 py-2 w-full"
+              />
+              <label
+                for="number"
+                class="absolute top-0 left-3 -mt-2 bg-white text-gray-500 px-1"
+              >
+                Phone Number
+              </label>
+            </p>
+            <button
+              :disabled="!canCheckOut"
+              v-on:click="submitOrder"
+              :class="{ 'bg-orange-400 hover:bg-orange-500 text-white py-4 px-6 my-4 rounded': canCheckOut,
+              'bg-gray-300 cursor-not-allowed opacity-50 py-4 px-6 my-4 rounded': !canCheckOut }"
+            >
+              Place Order
+            </button>
+          </div>
+        </div> -->
+      </main>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
