@@ -42,7 +42,7 @@
             <div>
               <input
                 type="search"
-                v-model="searchQuery"
+                v-model="query"
                 name="search"
                 id="search"
                 placeholder="Search Lesson..."
@@ -128,64 +128,131 @@
             </div>
           </div>
           <div class="flex flex-wrap w-full">
-            <div
-              v-for="lesson in lessons"
-              class="bg-orange-400 w-70 p-4 m-2 flex flex-col items-center"
-            >
-              <figure>
-                <img class="h-48" v-bind:src="lesson.image" alt="" />
-              </figure>
-              <div class="items-start my-4">
-                <h3>
-                  Lesson:
-                  <span class="font-semibold text-base"
-                    >{{lesson.programme}}</span
-                  >
-                </h3>
-                <p>
-                  Location:
-                  <span class="font-semibold text-base">
-                    {{lesson.location}}</span
-                  >
+            <div v-if="searchResults.length > 0" class="flex flex-wrap w-full">
+              <div
+                v-for="lesson in searchResults"
+                class="bg-orange-400 w-70 p-4 m-2 flex flex-col items-center"
+              >
+                <figure>
+                  <img class="h-48" v-bind:src="lesson.image" alt="" />
+                </figure>
+                <div class="items-start my-4">
+                  <h3>
+                    Lesson:
+                    <span class="font-semibold text-base"
+                      >{{lesson.programme}}</span
+                    >
+                  </h3>
+                  <p>
+                    Location:
+                    <span class="font-semibold text-base">
+                      {{lesson.location}}</span
+                    >
+                  </p>
+                  <p>
+                    Price:
+                    <span class="font-semibold text-base"
+                      >{{lesson.price}}</span
+                    >
+                  </p>
+                  <p>
+                    Spaces Available:
+                    <span class="font-semibold text-base"
+                      >{{lesson.spaces - cartCount(lesson._id)}}
+                    </span>
+                  </p>
+                </div>
+                <p
+                  v-if="lesson.spaces === cartCount(lesson.id)"
+                  class="font-semibold text-red-700"
+                >
+                  All Out!
                 </p>
-                <p>
-                  Price:
-                  <span class="font-semibold text-base">{{lesson.price}}</span>
+                <p
+                  v-else-if="lesson.spaces - cartCount(lesson.id) < 3"
+                  class="font-semibold text-red-700"
+                >
+                  Only {{lesson.spaces - cartCount(lesson._id)}} left!!!
                 </p>
-                <p>
-                  Spaces Available:
-                  <span class="font-semibold text-base"
-                    >{{lesson.spaces - cartCount(lesson._id)}}
-                  </span>
-                </p>
+                <p class="font-semibold text-white" v-else>Buy Now!</p>
+                <button
+                  v-on:click="addToCart(lesson)"
+                  v-if="canAddToCart(lesson)"
+                  class="bg-white text-orange-400 hover:bg-gray-300 font-bold py-2 px-4 my-2 w-full rounded"
+                >
+                  Add To Cart
+                </button>
+                <button
+                  disabled="disabled"
+                  v-else
+                  class="bg-gray-300 cursor-not-allowed opacity-50 py-2 px-4 my-2 w-full rounded"
+                >
+                  Add To Cart
+                </button>
               </div>
-              <p
-                v-if="lesson.spaces === cartCount(lesson.id)"
-                class="font-semibold text-red-700"
+            </div>
+            <div v-else class="flex flex-wrap w-full">
+              <div
+                v-for="lesson in lessons"
+                class="bg-orange-400 w-70 p-4 m-2 flex flex-col items-center"
               >
-                All Out!
-              </p>
-              <p
-                v-else-if="lesson.spaces - cartCount(lesson.id) < 3"
-                class="font-semibold text-red-700"
-              >
-                Only {{lesson.spaces - cartCount(lesson._id)}} left!!!
-              </p>
-              <p class="font-semibold text-white" v-else>Buy Now!</p>
-              <button
-                v-on:click="addToCart(lesson)"
-                v-if="canAddToCart(lesson)"
-                class="bg-white text-orange-400 hover:bg-gray-300 font-bold py-2 px-4 my-2 w-full rounded"
-              >
-                Add To Cart
-              </button>
-              <button
-                disabled="disabled"
-                v-else
-                class="bg-gray-300 cursor-not-allowed opacity-50 py-2 px-4 my-2 w-full rounded"
-              >
-                Add To Cart
-              </button>
+                <figure>
+                  <img class="h-48" v-bind:src="lesson.image" alt="" />
+                </figure>
+                <div class="items-start my-4">
+                  <h3>
+                    Lesson:
+                    <span class="font-semibold text-base"
+                      >{{lesson.programme}}</span
+                    >
+                  </h3>
+                  <p>
+                    Location:
+                    <span class="font-semibold text-base">
+                      {{lesson.location}}</span
+                    >
+                  </p>
+                  <p>
+                    Price:
+                    <span class="font-semibold text-base"
+                      >{{lesson.price}}</span
+                    >
+                  </p>
+                  <p>
+                    Spaces Available:
+                    <span class="font-semibold text-base"
+                      >{{lesson.spaces - cartCount(lesson._id)}}
+                    </span>
+                  </p>
+                </div>
+                <p
+                  v-if="lesson.spaces === cartCount(lesson.id)"
+                  class="font-semibold text-red-700"
+                >
+                  All Out!
+                </p>
+                <p
+                  v-else-if="lesson.spaces - cartCount(lesson.id) < 3"
+                  class="font-semibold text-red-700"
+                >
+                  Only {{lesson.spaces - cartCount(lesson._id)}} left!!!
+                </p>
+                <p class="font-semibold text-white" v-else>Buy Now!</p>
+                <button
+                  v-on:click="addToCart(lesson)"
+                  v-if="canAddToCart(lesson)"
+                  class="bg-white text-orange-400 hover:bg-gray-300 font-bold py-2 px-4 my-2 w-full rounded"
+                >
+                  Add To Cart
+                </button>
+                <button
+                  disabled="disabled"
+                  v-else
+                  class="bg-gray-300 cursor-not-allowed opacity-50 py-2 px-4 my-2 w-full rounded"
+                >
+                  Add To Cart
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -277,100 +344,6 @@
             </button>
           </div>
         </div>
-        <!-- <div v-else="showCartPage" class="flex mx-12">
-          <div class="flex flex-wrap w-full">
-            <div
-              v-for="(item, index) in cart"
-              :key="index"
-              class="bg-orange-400 w-70 p-4 m-2 flex flex-col items-center"
-            >
-              <div v-if="getLessonDetails(item.id)">
-                <figure>
-                  <img
-                    class="h-48"
-                    :src="getLessonDetails(item.id).image"
-                    alt=""
-                  />
-                </figure>
-                <div class="items-start my-4">
-                  <h3>
-                    Lesson:
-                    <span class="font-semibold text-base"
-                      >{{ getLessonDetails(item.id).programme }}</span
-                    >
-                  </h3>
-                  <p>
-                    Location:
-                    <span class="font-semibold text-base"
-                      >{{ getLessonDetails(item.id).location }}</span
-                    >
-                  </p>
-                  <p>
-                    Price:
-                    <span class="font-semibold text-base"
-                      >{{ getLessonDetails(item.id).price }}</span
-                    >
-                  </p>
-                  <p>
-                    Quantity:
-                    <span class="font-semibold text-base"
-                      >{{ item.quantity }}</span
-                    >
-                  </p>
-                </div>
-                <button
-                  v-on:click="removeFromCart(item.id)"
-                  class="bg-white text-orange-400 hover:bg-gray-300 font-bold py-2 px-4 my-2 w-full rounded"
-                >
-                  Remove
-                </button>
-              </div>
-              <div v-else>
-                <p>Lesson details not found for ID: {{ item.id }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="w-2/5 p-4">
-            <h3 class="font-semibold text-lg">Checkout Details</h3>
-            <p class="relative my-4">
-              <input
-                type="text"
-                v-model="order.name"
-                id="name"
-                required
-                class="border-2 border-gray-300 focus:border-orange-400 outline-none rounded-md px-3 py-2 w-full"
-              />
-              <label
-                for="name"
-                class="absolute top-0 left-3 -mt-2 bg-white text-gray-500 px-1"
-                >Full Name
-              </label>
-            </p>
-            <p class="relative my-4">
-              <input
-                type="number"
-                v-model="order.number"
-                id="number"
-                required
-                class="border-2 border-gray-300 focus:border-orange-400 outline-none rounded-md px-3 py-2 w-full"
-              />
-              <label
-                for="number"
-                class="absolute top-0 left-3 -mt-2 bg-white text-gray-500 px-1"
-              >
-                Phone Number
-              </label>
-            </p>
-            <button
-              :disabled="!canCheckOut"
-              v-on:click="submitOrder"
-              :class="{ 'bg-orange-400 hover:bg-orange-500 text-white py-4 px-6 my-4 rounded': canCheckOut,
-              'bg-gray-300 cursor-not-allowed opacity-50 py-4 px-6 my-4 rounded': !canCheckOut }"
-            >
-              Place Order
-            </button>
-          </div>
-        </div> -->
       </main>
     </div>
     <script src="app.js"></script>

@@ -12,6 +12,8 @@ let webstore = new Vue({
       number: "",
     },
     cart: [],
+    query: "",
+    searchResults: [],
   },
 
   mounted() {
@@ -33,62 +35,12 @@ let webstore = new Vue({
     enableCheckout() {
       return this.cart.length > 0;
     },
-
-    // Function to Filter Lessons based on search as you type
-    filteredLessons() {
-      const query = this.searchQuery.toLowerCase().trim();
-      if (!query) {
-        return this.lessons;
-      } else {
-        return this.lessons.filter(
-          (lesson) =>
-            lesson.programme.toLowerCase().includes(query) ||
-            lesson.location.toLowerCase().includes(query)
-        );
-      }
-    },
-
-    // Function to sort the filtered lessons
-    filteredLessonsSorted() {
-      return this.filteredLessons.sort((a, b) => {
-        let modifier = 1;
-        if (this.sortOrder === "desc") {
-          modifier = -1;
-        }
-        if (a[this.sortBy] < b[this.sortBy]) return -1 * modifier;
-        if (a[this.sortBy] > b[this.sortBy]) return 1 * modifier;
-        return 0;
-      });
-    },
-    // removeFromCart(index) {
-    //   const removedItem = this.cart[index];
-    //   if (removedItem && removedItem.quantity > 1) {
-    //     removedItem.quantity--;
-    //   } else {
-    //     this.cart.splice(index, 1);
-    //   }
-
-    //   const originalLessonIndex = this.lessons.findIndex(
-    //     (item) => item.id === removedItem.id
-    //   );
-    //   if (originalLessonIndex !== -1) {
-    //     // Remove the original item from the lessons array if it's present
-    //     this.lessons.splice(originalLessonIndex, 1);
-    //   }
-    // },
   },
   methods: {
     addToCart(lesson) {
       this.cart.push(lesson._id);
     },
-    // addToCart(lesson) {
-    //   const existingCartItem = this.cart.find((item) => item.id === lesson.id);
-    //   if (existingCartItem) {
-    //     existingCartItem.quantity++;
-    //   } else {
-    //     this.cart.push({ id: lesson.id, quantity: 1 });
-    //   }
-    // },
+
     canAddToCart(lesson) {
       return lesson.spaces > this.cartCount(lesson._id);
     },
@@ -102,16 +54,6 @@ let webstore = new Vue({
       }
       return count++;
     },
-
-    // cartCount(id) {
-    //   let count = 0;
-    //   for (let i = 0; i < this.cart.length; i++) {
-    //     if (this.cart[i].id === id) {
-    //       count += this.cart[i].quantity;
-    //     }
-    //   }
-    //   return count;
-    // },
 
     fetchLessons() {
       // Fetch lessons from the server
@@ -156,35 +98,6 @@ let webstore = new Vue({
       return this.lessons.find((lesson) => lesson._id === lessonId);
     },
 
-    // Funtion to submit the order
-    // submitOrder() {
-    //   fetch(
-    //     "http://products-env.eba-gpri3t2b.eu-north-1.elasticbeanstalk.com/collection/orders",
-    //     {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify({
-    //         order: this.order,
-    //         cart: this.cart,
-    //       }),
-    //     }
-    //   )
-    //     .then((response) => response.json())
-    //     .then((data) => {
-    //       console.log("Success:", data);
-    //       this.order = {
-    //         name: "",
-    //         number: "",
-    //       };
-    //       this.cart = [];
-    //     })
-    //     .catch((error) => {
-    //       console.error("Error fetching lessons:", error);
-    //     });
-    // },
-
     async submitOrder() {
       try {
         // Save the new order
@@ -202,7 +115,7 @@ let webstore = new Vue({
           try {
             // Make an API request to fetch originalSpaces from the server
             const response = await fetch(
-              `http://localhost:3001/collection/products/${lessonId}`
+              `http://products-env.eba-gpri3t2b.eu-north-1.elasticbeanstalk.com/collection/products/${lessonId}`
             );
             if (!response.ok) {
               throw new Error("Failed to fetch originalSpaces");
@@ -235,7 +148,7 @@ let webstore = new Vue({
       const orderData = { order: this.order, cart: this.cart };
       try {
         const response = await fetch(
-          "http://localhost:3001/collection/orders",
+          "http://products-env.eba-gpri3t2b.eu-north-1.elasticbeanstalk.com/collection/orders",
           {
             method: "POST",
             headers: {
@@ -261,7 +174,7 @@ let webstore = new Vue({
     async updateLessonSpace(lessonId, quantity, originalSpaces) {
       try {
         const response = await fetch(
-          `http://localhost:3001/collection/products/${lessonId}`,
+          `http://products-env.eba-gpri3t2b.eu-north-1.elasticbeanstalk.com/collection/products/${lessonId}`,
           {
             method: "PUT",
             headers: {
@@ -281,6 +194,24 @@ let webstore = new Vue({
       } catch (error) {
         console.error("Error updating lesson space:", error);
         throw error; // Rethrow the error for error handling at the caller side
+      }
+    },
+  },
+
+  watch: {
+    async query(newValue) {
+      try {
+        const response = await fetch(
+          `http://products-env.eba-gpri3t2b.eu-north-1.elasticbeanstalk.com/search?query=${newValue}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch search results");
+        }
+        this.searchResults = await response.json();
+      } catch (error) {
+        console.error("Error searching lessons:", error);
+        // Handle error (e.g., display error message)
+        this.searchResults = [];
       }
     },
   },
