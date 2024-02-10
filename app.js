@@ -58,7 +58,7 @@ let webstore = new Vue({
     fetchLessons() {
       // Fetch lessons from the server
       fetch(
-        "https://products-env.eba-gpri3t2b.eu-north-1.elasticbeanstalk.com/collection/products",
+        "http://products-env.eba-gpri3t2b.eu-north-1.elasticbeanstalk.com/collection/products",
         {
           method: "GET",
           headers: {
